@@ -1,0 +1,414 @@
+/* すべての要素でpadding・borderを幅計算に含める */
+* {
+  box-sizing: border-box;
+}
+
+/* アプリ全体で使用する基本フォント・文字色・背景色 */
+:root {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans JP",
+    "Hiragino Kaku Gothic ProN", Meiryo, sans-serif;
+  color: #1f2937;
+  background: #f3f4f6;
+}
+
+/* ページ全体の基本レイアウト */
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: #f3f4f6;
+}
+
+button,
+input,
+select {
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+/* スマートフォン幅を意識したアプリ本体 */
+.app {
+  width: 100%;
+  max-width: 520px;
+  min-height: 100vh;
+  margin: 0 auto;
+  background: #fff;
+  padding-bottom: 72px;
+}
+
+/* 画面上部のヘッダー */
+.app-header {
+  height: 58px;
+  padding: 0 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid #e5e7eb;
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  background: rgba(255,255,255,.96);
+  backdrop-filter: blur(8px);
+}
+
+.app-header h1 {
+  font-size: 20px;
+  margin: 0;
+}
+
+.icon-btn {
+  border: 0;
+  background: transparent;
+  color: #374151;
+  font-size: 22px;
+  padding: 8px;
+  border-radius: 8px;
+}
+
+.icon-btn:hover {
+  background: #f3f4f6;
+}
+
+main {
+  padding: 16px;
+}
+
+.view {
+  display: none;
+}
+
+.view.active {
+  display: block;
+}
+
+/* 今日の日付と勤怠期間を表示するカード */
+.date-card {
+  background: #eff6ff;
+  border-radius: 16px;
+  padding: 18px;
+  margin-bottom: 12px;
+}
+
+.today {
+  font-size: 22px;
+  font-weight: 700;
+}
+
+.period {
+  margin-top: 6px;
+  font-size: 13px;
+  color: #4b5563;
+}
+
+/* 今日の勤務状態・開始・終了時刻を表示 */
+.status-card {
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+  padding: 18px;
+  margin-bottom: 16px;
+}
+
+.status-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 14px;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.status-row span,
+.time-row span {
+  color: #6b7280;
+  font-size: 13px;
+}
+
+.status-row strong {
+  font-size: 15px;
+}
+
+.time-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  padding-top: 14px;
+}
+
+.time-row div {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.time-row strong {
+  font-size: 25px;
+}
+
+/* 勤怠登録ボタンを並べる領域 */
+.action-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+/* 共通のボタンデザイン */
+.action {
+  min-height: 52px;
+  border: 0;
+  border-radius: 12px;
+  font-weight: 700;
+  transition: transform .05s, opacity .15s;
+}
+
+.action:active {
+  transform: scale(.98);
+}
+
+.action.primary {
+  background: #2563eb;
+  color: #fff;
+}
+
+.action.secondary {
+  background: #e5e7eb;
+  color: #1f2937;
+}
+
+.action.danger {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.action.wide {
+  grid-column: 1 / -1;
+}
+
+.text-btn {
+  display: block;
+  margin: 14px auto 0;
+  border: 0;
+  background: transparent;
+  color: #2563eb;
+  font-weight: 600;
+  padding: 8px 12px;
+}
+
+.section-title-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 14px;
+}
+
+.section-title-row h2 {
+  margin: 0;
+  font-size: 20px;
+}
+
+.muted {
+  color: #6b7280;
+  font-size: 13px;
+  margin: 5px 0 0;
+}
+
+/* 履歴一覧 */
+.history-list {
+  border: 1px solid #e5e7eb;
+  border-radius: 14px;
+  overflow: hidden;
+  margin-bottom: 14px;
+}
+
+.history-item {
+  display: grid;
+  grid-template-columns: 1.2fr .9fr .9fr;
+  align-items: center;
+  gap: 6px;
+  padding: 11px 10px;
+  border-bottom: 1px solid #f3f4f6;
+  font-size: 13px;
+}
+
+.history-item:last-child {
+  border-bottom: 0;
+}
+
+.history-item.header {
+  background: #f9fafb;
+  font-weight: 700;
+}
+
+.history-date small {
+  display: block;
+  color: #6b7280;
+  font-size: 11px;
+}
+
+.weekend {
+  color: #9ca3af;
+  background: #fafafa;
+}
+
+.holiday {
+  color: #9ca3af;
+  background: #fafafa;
+}
+
+.history-status {
+  font-size: 11px;
+  color: #6b7280;
+}
+
+.help {
+  color: #6b7280;
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+/* 設定・編集画面の入力項目 */
+.field {
+  display: block;
+  margin-bottom: 16px;
+}
+
+.field span {
+  display: block;
+  margin-bottom: 7px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #4b5563;
+}
+
+.field input,
+.field select {
+  width: 100%;
+  height: 48px;
+  border: 1px solid #d1d5db;
+  border-radius: 10px;
+  padding: 0 12px;
+  background: #fff;
+}
+
+.settings-note {
+  margin-top: 20px;
+  padding: 14px;
+  border-radius: 12px;
+  background: #f9fafb;
+  font-size: 13px;
+  line-height: 1.7;
+  color: #4b5563;
+}
+
+.settings-note p {
+  margin: 5px 0 0;
+}
+
+/* 画面下部の固定ナビゲーション */
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(520px, 100%);
+  height: 64px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  background: rgba(255,255,255,.96);
+  border-top: 1px solid #e5e7eb;
+  z-index: 10;
+  backdrop-filter: blur(8px);
+}
+
+.nav-btn {
+  border: 0;
+  background: transparent;
+  color: #6b7280;
+  font-weight: 600;
+}
+
+.nav-btn.active {
+  color: #2563eb;
+}
+
+/* 勤怠編集用のモーダル */
+.modal {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  background: rgba(0,0,0,.4);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+.modal.hidden {
+  display: none;
+}
+
+.modal-content {
+  width: min(520px, 100%);
+  max-height: 90vh;
+  overflow-y: auto;
+  background: #fff;
+  border-radius: 18px 18px 0 0;
+  padding: 18px;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 18px;
+}
+
+.modal-header h2 {
+  margin: 0;
+  font-size: 19px;
+}
+
+.modal-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+/* 保存完了などを一時表示するメッセージ */
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: 82px;
+  transform: translate(-50%, 20px);
+  opacity: 0;
+  pointer-events: none;
+  background: #111827;
+  color: #fff;
+  padding: 10px 16px;
+  border-radius: 999px;
+  font-size: 13px;
+  transition: opacity .2s, transform .2s;
+  z-index: 30;
+}
+
+.toast.show {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+
+@media (min-width: 521px) {
+  body {
+    padding: 20px 0;
+  }
+
+  .app {
+    min-height: calc(100vh - 40px);
+    border-radius: 18px;
+    overflow: hidden;
+    box-shadow: 0 8px 30px rgba(0,0,0,.08);
+  }
+
+  .bottom-nav {
+    position: fixed;
+  }
+}

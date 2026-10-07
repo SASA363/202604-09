@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#2563eb">
+  <!-- PWAとしてホーム画面へ追加するための設定 -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="勤怠入力">
+  <link rel="apple-touch-icon" href="icon-192.png">
+  <title>勤怠入力簡略化システム</title>
+  <!-- 画面の見た目を定義するCSSを読み込み -->
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- アプリ全体を囲むコンテナ -->
+  <div class="app">
+    <!-- 上部ヘッダー：タイトルと設定ボタン -->
+    <header class="app-header">
+      <h1>勤怠入力</h1>
+      <button id="settingsBtn" class="icon-btn" aria-label="設定">⚙</button>
+    </header>
+
+    <!-- メイン画面。JavaScriptで3つの画面を切り替え -->
+    <main>
+      <!-- 入力画面：今日の勤怠を確認・登録する画面 -->
+      <section id="inputView" class="view active">
+        <div class="date-card">
+          <div id="todayText" class="today"></div>
+          <div id="periodText" class="period"></div>
+        </div>
+
+        <div class="status-card">
+          <div class="status-row">
+            <span>勤務状態</span>
+            <strong id="todayStatus">未登録</strong>
+          </div>
+          <div class="time-row">
+            <div>
+              <span>開始</span>
+              <strong id="todayStart">--:--</strong>
+            </div>
+            <div>
+              <span>終了</span>
+              <strong id="todayEnd">--:--</strong>
+            </div>
+          </div>
+        </div>
+
+        <div class="action-grid">
+          <button id="lateBtn" class="action secondary">遅刻</button>
+          <button id="pmLeaveBtn" class="action secondary">PM休</button>
+          <button id="endBtn" class="action primary wide">終了時刻を登録</button>
+        </div>
+
+        <button id="editTodayBtn" class="text-btn">今日の勤怠を編集</button>
+      </section>
+
+      <!-- 履歴画面：対象期間の勤怠を一覧表示する画面 -->
+      <section id="historyView" class="view">
+        <div class="section-title-row">
+          <div>
+            <h2>勤怠履歴</h2>
+            <p id="historyPeriod" class="muted"></p>
+          </div>
+        </div>
+        <div id="historyList" class="history-list"></div>
+        <button id="copyBtn" class="action primary wide">勤怠表へコピー</button>
+        <p class="help">日付・開始・終了をタブ区切りでコピーします。そのまま勤怠表へ貼り付けできます。</p>
+      </section>
+
+      <!-- 設定画面：通常勤務時間などを変更する画面 -->
+      <section id="settingsView" class="view">
+        <div class="section-title-row">
+          <h2>設定</h2>
+        </div>
+
+        <label class="field">
+          <span>通常勤務開始時刻</span>
+          <input id="defaultStart" type="time">
+        </label>
+
+        <label class="field">
+          <span>通常勤務終了時刻</span>
+          <input id="defaultEnd" type="time">
+        </label>
+
+        <label class="field">
+          <span>遅刻時の開始時刻</span>
+          <input id="lateStart" type="time">
+        </label>
+
+        <label class="field">
+          <span>PM休の開始時刻</span>
+          <input id="pmLeaveStart" type="time">
+        </label>
+
+        <button id="saveSettingsBtn" class="action primary wide">設定を保存</button>
+
+        <div class="settings-note">
+          <strong>データについて</strong>
+          <p>勤怠データはこのブラウザの端末内に保存されます。サーバーには送信しません。</p>
+        </div>
+      </section>
+    </main>
+
+    <!-- 画面下部のナビゲーション -->
+    <nav class="bottom-nav">
+      <button class="nav-btn active" data-view="inputView">入力</button>
+      <button class="nav-btn" data-view="historyView">履歴</button>
+      <button class="nav-btn" data-view="settingsView">設定</button>
+    </nav>
+  </div>
+
+  <!-- 今日の勤怠を詳細編集するモーダル画面 -->
+  <div id="editModal" class="modal hidden">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>今日の勤怠を編集</h2>
+        <button id="closeModalBtn" class="icon-btn">×</button>
+      </div>
+
+      <label class="field">
+        <span>勤務状態</span>
+        <select id="editStatus">
+          <option value="normal">通常勤務</option>
+          <option value="late">遅刻</option>
+          <option value="pm_leave">PM休</option>
+          <option value="holiday">休日</option>
+        </select>
+      </label>
+
+      <label class="field">
+        <span>開始時刻</span>
+        <input id="editStart" type="time">
+      </label>
+
+      <label class="field">
+        <span>終了時刻</span>
+        <input id="editEnd" type="time">
+      </label>
+
+      <label class="field">
+        <span>メモ</span>
+        <input id="editMemo" type="text" maxlength="100" placeholder="任意">
+      </label>
+
+      <div class="modal-actions">
+        <button id="deleteTodayBtn" class="action danger">削除</button>
+        <button id="saveTodayBtn" class="action primary">保存</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 操作結果などを一時表示するトースト -->
+  <div id="toast" class="toast"></div>
+
+  <!-- アプリの動作を担当するJavaScript -->
+  <script src="app.js"></script>
+
+  <!-- Service Workerを登録してPWAのキャッシュ機能を有効にする -->
+  <script>
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", () => {
+        navigator.serviceWorker.register("./service-worker.js")
+          .then(() => console.log("Service Worker registered"))
+          .catch(error => console.error("Service Worker registration failed:", error));
+      });
+    }
+  </script>
+</body>
+</html>
