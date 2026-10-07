@@ -11,7 +11,7 @@ const DEFAULT_SETTINGS = {
   startTime: "09:00",
   endTime: "18:15",
   lateStart: "09:15",
-  pmLeaveStart: "13:00",
+  pmLeaveEnd: "13:00",
   attendanceCategory: "3"
 };
 
@@ -161,9 +161,9 @@ function registerLate() {
 
   saveAttendance({
     date: formatDateKey(new Date()),
-    startTime,
-    endTime: existing?.endTime || null,
-    status: "late",
+    startTime: existing?.startTime || settings.startTime,
+    endTime: settings.pmLeaveEnd,
+    status: "pm_leave",
     memo: existing?.memo || ""
   });
 
