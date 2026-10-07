@@ -9,7 +9,7 @@ const SETTINGS_KEY = "attendanceApp_settings_v1";
 // 何も設定されていない初回起動時に使用する勤務時間
 const DEFAULT_SETTINGS = {
   startTime: "09:00",
-  endTime: "18:15",
+  endTime: "18:00",
   lateStart: "09:15",
   pmLeaveEnd: "13:00",
   attendanceCategory: "3"
