@@ -144,31 +144,40 @@ function renderToday() {
     data?.endTime || "--:--";
 }
 
-// 「遅刻」ボタン：開始時刻を入力して遅刻として保存
+// 「遅刻」ボタン：入力した開始時刻を遅刻として保存
 function registerLate() {
-  const existing = getAttendance(formatDateKey(new Date()));
+  const dateKey = formatDateKey(new Date());
+  const existing = getAttendance(dateKey);
+
+  // 既に登録されている開始時刻があれば初期値として表示
+  // なければ設定した遅刻開始時刻を表示
   const startTime = prompt(
     "出勤時刻を入力してください",
     existing?.startTime || settings.lateStart
   );
 
+  // キャンセルした場合は何もしない
   if (startTime === null) return;
 
+  // HH:MM形式かチェック
   if (!isValidTime(startTime)) {
     showToast("時刻はHH:MM形式で入力してください");
     return;
   }
 
+  // 入力した出勤時刻を保存
   saveAttendance({
-    date: formatDateKey(new Date()),
-    startTime: existing?.startTime || settings.startTime,
-    endTime: settings.pmLeaveEnd,
-    status: "pm_leave",
+    date: dateKey,
+    startTime: startTime,
+    endTime: existing?.endTime || null,
+    status: "late",
     memo: existing?.memo || ""
   });
 
+  // 保存した内容を画面に反映
   renderAll();
-  showToast("遅刻として登録しました");
+
+  showToast(`遅刻（${startTime}）として登録しました`);
 }
 
 // 「PM休」ボタン：通常の開始時刻から13:00まで勤務した扱いで保存
