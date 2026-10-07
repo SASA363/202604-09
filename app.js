@@ -11,7 +11,8 @@ const DEFAULT_SETTINGS = {
   startTime: "09:00",
   endTime: "18:15",
   lateStart: "09:15",
-  pmLeaveStart: "13:00"
+  pmLeaveStart: "13:00",
+  attendanceCategory: "3"
 };
 
 // 休日判定に使用する祝日一覧
@@ -137,7 +138,7 @@ function renderToday() {
     data ? STATUS_LABELS[data.status] || "登録済み" : "未登録";
 
   document.getElementById("todayStart").textContent =
-    data?.startTime || "--:--";
+    data?.startTime || "09:00";
 
   document.getElementById("todayEnd").textContent =
     data?.endTime || "--:--";
@@ -343,8 +344,7 @@ function openEditForDate(date) {
   showToast("勤怠を更新しました");
 }
 
-// 履歴を「日付[TAB]開始[TAB]終了」の形式でコピー
-// 勤怠表へそのまま貼り付けることを想定
+// 履歴を「勤怠区分[TAB]開始[TAB]終了」の形式でコピー
 function copyAttendance() {
   const now = new Date();
   const period = getAttendancePeriod(now);
@@ -353,7 +353,7 @@ function copyAttendance() {
   const text = list.map(item => {
     const data = item.attendance;
     return [
-      formatDateJP(item.date),
+      settings.attendanceCategory,
       data?.startTime || "",
       data?.endTime || ""
     ].join("\t");
@@ -375,6 +375,7 @@ function renderSettings() {
   document.getElementById("defaultEnd").value = settings.endTime;
   document.getElementById("lateStart").value = settings.lateStart;
   document.getElementById("pmLeaveStart").value = settings.pmLeaveStart;
+  document.getElementById("attendanceCategory").value = settings.attendanceCategory;
 }
 
 // 設定画面の入力値をチェックしてlocalStorageへ保存
@@ -383,11 +384,19 @@ function saveSettingsFromForm() {
     startTime: document.getElementById("defaultStart").value,
     endTime: document.getElementById("defaultEnd").value,
     lateStart: document.getElementById("lateStart").value,
-    pmLeaveStart: document.getElementById("pmLeaveStart").value
+    pmLeaveStart: document.getElementById("pmLeaveStart").value,
+    attendanceCategory: document.getElementById("attendanceCategory").value.trim()
   };
 
-  if (Object.values(newSettings).some(v => !isValidTime(v))) {
-    showToast("設定時刻を確認してください");
+  if ([newSettings.startTime, newSettings.endTime, newSettings.lateStart, newSettings.pmLeaveStart]
+    .some(v => !isValidTime(v))) {
+  showToast("設定時刻を確認してください");
+  return;
+}
+
+  // 勤怠区分はExcelへ出力する値なので、空欄にはできないようにします。
+  if (!newSettings.attendanceCategory) {
+    showToast("勤怠区分を入力してください");
     return;
   }
 

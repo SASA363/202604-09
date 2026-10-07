@@ -68,7 +68,7 @@
         </div>
         <div id="historyList" class="history-list"></div>
         <button id="copyBtn" class="action primary wide">勤怠表へコピー</button>
-        <p class="help">日付・開始・終了をタブ区切りでコピーします。そのまま勤怠表へ貼り付けできます。</p>
+        <p class="help">「勤怠区分・開始時刻・終了時刻」をタブ区切りでコピーします。そのまま勤怠表へ貼り付けできます。</p>
       </section>
 
       <!-- 設定画面：通常勤務時間などを変更する画面 -->
@@ -95,6 +95,11 @@
         <label class="field">
           <span>PM休の開始時刻</span>
           <input id="pmLeaveStart" type="time">
+        </label>
+
+        <label class="field">
+          <span>勤怠区分</span>
+          <input id="attendanceCategory" type="text" inputmode="numeric" maxlength="20" placeholder="例：3">
         </label>
 
         <button id="saveSettingsBtn" class="action primary wide">設定を保存</button>
