@@ -85,6 +85,7 @@ function bindEvents() {
   document.getElementById("settingsBtn").addEventListener("click", () => switchView("settingsView"));
   document.getElementById("copyBtn").addEventListener("click", copyAttendance);
   document.getElementById("saveSettingsBtn").addEventListener("click", saveSettingsFromForm);
+  document.getElementById("updateAppBtn").addEventListener("click", updateApp);
   document.getElementById("closeModalBtn").addEventListener("click", closeEditModal);
   document.getElementById("saveTodayBtn").addEventListener("click", saveTodayEdit);
   document.getElementById("deleteTodayBtn").addEventListener("click", deleteToday);
@@ -570,4 +571,45 @@ function showToast(message) {
   toastTimer = setTimeout(() => {
     toast.classList.remove("show");
   }, 2200);
+}
+
+// ============================================================
+// アプリを最新版へ更新
+// ============================================================
+
+// Service Workerとキャッシュを更新して、最新版のファイルを読み込む
+async function updateApp() {
+  if (!confirm("アプリを最新版に更新しますか？")) {
+    return;
+  }
+
+  try {
+    showToast("最新版を確認しています...");
+
+    // 現在登録されているService Workerを取得
+    const registration = await navigator.serviceWorker.getRegistration();
+
+    // Service Workerが存在する場合は最新版を確認
+    if (registration) {
+      await registration.update();
+    }
+
+    // 古いキャッシュを削除
+    const cacheNames = await caches.keys();
+
+    await Promise.all(
+      cacheNames.map(cacheName => caches.delete(cacheName))
+    );
+
+    // URLに更新用の値を付けて再読み込み
+    // ブラウザ側の古いキャッシュも使わないようにする
+    const url = new URL(window.location.href);
+    url.searchParams.set("update", Date.now());
+
+    window.location.href = url.toString();
+
+  } catch (error) {
+    console.error("アプリ更新エラー:", error);
+    showToast("更新に失敗しました");
+  }
 }
