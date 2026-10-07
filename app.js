@@ -218,15 +218,30 @@ function registerEndTime() {
   showToast(`終了時刻 ${endTime} で登録しました`);
 }
 
-// 今日の勤怠編集モーダルを開き、現在の値を入力欄へ設定
-function openEditModal() {
-  const data = getAttendance(formatDateKey(new Date()));
+// 勤怠編集モーダルを開く
+// dateKeyを指定しなければ今日の勤怠を編集
+function openEditModal(dateKey = formatDateKey(new Date())) {
+  // 現在編集中の日付を記憶
+  editingDateKey = dateKey;
 
-  document.getElementById("editStatus").value = data?.status || "normal";
-  document.getElementById("editStart").value = data?.startTime || settings.startTime;
-  document.getElementById("editEnd").value = data?.endTime || settings.endTime;
-  document.getElementById("editMemo").value = data?.memo || "";
+  // 指定日の勤怠データを取得
+  const data = getAttendance(dateKey);
 
+  // 保存済みデータがあれば表示
+  // なければ設定した初期値を表示
+  document.getElementById("editStatus").value =
+    data?.status || "normal";
+
+  document.getElementById("editStart").value =
+    data?.startTime || settings.startTime;
+
+  document.getElementById("editEnd").value =
+    data?.endTime || settings.endTime;
+
+  document.getElementById("editMemo").value =
+    data?.memo || "";
+
+  // モーダルを表示
   document.getElementById("editModal").classList.remove("hidden");
 }
 
@@ -235,46 +250,66 @@ function closeEditModal() {
   document.getElementById("editModal").classList.add("hidden");
 }
 
-// 編集モーダルで変更した今日の勤怠を保存
+// 編集モーダルで変更した勤怠を保存
 function saveTodayEdit() {
   const startTime = document.getElementById("editStart").value;
   const endTime = document.getElementById("editEnd").value;
   const status = document.getElementById("editStatus").value;
   const memo = document.getElementById("editMemo").value.trim();
 
+  // 開始時刻の入力チェック
   if (startTime && !isValidTime(startTime)) {
     showToast("開始時刻を確認してください");
     return;
   }
 
+  // 終了時刻の入力チェック
   if (endTime && !isValidTime(endTime)) {
     showToast("終了時刻を確認してください");
     return;
   }
 
+  // 編集対象の日付に保存
   saveAttendance({
-    date: formatDateKey(new Date()),
+    date: editingDateKey,
     startTime: startTime || null,
     endTime: endTime || null,
     status,
     memo
   });
 
+  // モーダルを閉じる
   closeEditModal();
+
+  // 編集対象の日付をリセット
+  editingDateKey = null;
+
+  // 画面を更新
   renderAll();
+
   showToast("勤怠を保存しました");
 }
 
-// 今日の勤怠データをlocalStorageから削除
+// 現在編集中の勤怠データを削除
 function deleteToday() {
-  if (!confirm("今日の勤怠データを削除しますか？")) return;
+  if (!confirm("この日の勤怠データを削除しますか？")) return;
 
   const data = loadData();
-  delete data[formatDateKey(new Date())];
+
+  // 現在編集中の日付のデータを削除
+  delete data[editingDateKey];
+
   saveData(data);
 
+  // モーダルを閉じる
   closeEditModal();
+
+  // 編集対象の日付をリセット
+  editingDateKey = null;
+
+  // 画面を更新
   renderAll();
+
   showToast("削除しました");
 }
 
@@ -319,38 +354,10 @@ function renderHistory() {
   });
 }
 
-// 履歴一覧の過去日を簡易編集
+// 履歴から選択した日の勤怠編集モーダルを開く
 function openEditForDate(date) {
-  // 「今日の編集」を基本としているため、過去日の編集は簡易的にプロンプトで対応
-  const data = getAttendance(date);
-
-  const startTime = prompt("開始時刻（空欄で変更なし）", data?.startTime || "");
-  if (startTime === null) return;
-
-  const endTime = prompt("終了時刻（空欄で変更なし）", data?.endTime || "");
-  if (endTime === null) return;
-
-  if (startTime && !isValidTime(startTime)) {
-    showToast("開始時刻を確認してください");
-    return;
-  }
-
-  if (endTime && !isValidTime(endTime)) {
-    showToast("終了時刻を確認してください");
-    return;
-  }
-
-  saveAttendance({
-    date,
-    startTime: startTime || null,
-    endTime: endTime || null,
-    status: data?.status || "normal",
-    memo: data?.memo || ""
-  });
-
-  renderHistory();
-  renderToday();
-  showToast("勤怠を更新しました");
+  // 今日の編集と同じモーダルを使用
+  openEditModal(formatDateKey(date));
 }
 
 // 履歴を「勤怠区分[TAB]開始[TAB]終了」の形式でコピー
