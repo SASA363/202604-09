@@ -171,7 +171,7 @@ function registerLate() {
   showToast("遅刻として登録しました");
 }
 
-// 「PM休」ボタン：設定したPM休開始時刻で勤怠を保存
+// 「PM休」ボタン：通常の開始時刻から13:00まで勤務した扱いで保存
 function registerPmLeave() {
   const existing = getAttendance(formatDateKey(new Date()));
 
@@ -179,8 +179,8 @@ function registerPmLeave() {
 
   saveAttendance({
     date: formatDateKey(new Date()),
-    startTime: settings.pmLeaveStart,
-    endTime: existing?.endTime || null,
+    startTime: existing?.startTime || settings.startTime,
+    endTime: settings.pmLeaveEnd,
     status: "pm_leave",
     memo: existing?.memo || ""
   });
@@ -374,27 +374,25 @@ function renderSettings() {
   document.getElementById("defaultStart").value = settings.startTime;
   document.getElementById("defaultEnd").value = settings.endTime;
   document.getElementById("lateStart").value = settings.lateStart;
-  document.getElementById("pmLeaveStart").value = settings.pmLeaveStart;
+  document.getElementById("pmLeaveEnd").value = settings.pmLeaveEnd;
   document.getElementById("attendanceCategory").value = settings.attendanceCategory;
 }
 
-// 設定画面の入力値をチェックしてlocalStorageへ保存
 function saveSettingsFromForm() {
   const newSettings = {
     startTime: document.getElementById("defaultStart").value,
     endTime: document.getElementById("defaultEnd").value,
     lateStart: document.getElementById("lateStart").value,
-    pmLeaveStart: document.getElementById("pmLeaveStart").value,
+    pmLeaveEnd: document.getElementById("pmLeaveEnd").value,
     attendanceCategory: document.getElementById("attendanceCategory").value.trim()
   };
 
-  if ([newSettings.startTime, newSettings.endTime, newSettings.lateStart, newSettings.pmLeaveStart]
+  if ([newSettings.startTime, newSettings.endTime, newSettings.lateStart, newSettings.pmLeaveEnd]
     .some(v => !isValidTime(v))) {
-  showToast("設定時刻を確認してください");
-  return;
-}
+    showToast("設定時刻を確認してください");
+    return;
+  }
 
-  // 勤怠区分はExcelへ出力する値なので、空欄にはできないようにします。
   if (!newSettings.attendanceCategory) {
     showToast("勤怠区分を入力してください");
     return;
