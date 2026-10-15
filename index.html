@@ -12,7 +12,7 @@
   <link rel="apple-touch-icon" href="icon-192.png">
   <title>勤怠入力簡略化システム</title>
   <!-- 画面の見た目を定義するCSSを読み込み -->
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css?v=1.2.2">
 </head>
 <body>
   <!-- アプリ全体を囲むコンテナ -->
@@ -114,7 +114,7 @@
           <h3>アプリ情報</h3>
         
           <p class="app-version">
-            バージョン：v1.2.0
+            バージョン：v1.2.2
           </p>
         
           <p class="app-update-description">
@@ -134,6 +134,24 @@
       <button class="nav-btn" data-view="historyView">履歴</button>
       <button class="nav-btn" data-view="settingsView">設定</button>
     </nav>
+  </div>
+
+  <!-- 遅刻時刻入力モーダル（ブラウザ標準promptの代わり） -->
+  <div id="lateModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="lateModalTitle">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 id="lateModalTitle">遅刻時の開始時刻</h2>
+        <button id="cancelLateBtn" class="icon-btn" aria-label="閉じる">×</button>
+      </div>
+      <label class="field">
+        <span>出勤時刻</span>
+        <input id="lateStartInput" type="time" required>
+      </label>
+      <div class="modal-actions">
+        <button id="cancelLateBtnAlt" class="action secondary" type="button">キャンセル</button>
+        <button id="saveLateBtn" class="action primary" type="button">登録</button>
+      </div>
+    </div>
   </div>
 
   <!-- 今日の勤怠を詳細編集するモーダル画面 -->
@@ -180,7 +198,7 @@
   <div id="toast" class="toast"></div>
 
   <!-- アプリの動作を担当するJavaScript -->
-  <script src="app.js"></script>
+  <script src="app.js?v=1.2.2"></script>
 
   <!-- Service Workerを登録してPWAのキャッシュ機能を有効にする -->
   <script>
