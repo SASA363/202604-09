@@ -255,9 +255,16 @@ main {
   background: #fafafa;
 }
 
-.history-status {
+.history-status,
+.history-memo {
+  display: block;
   font-size: 11px;
   color: #6b7280;
+  overflow-wrap: anywhere;
+}
+
+.history-memo {
+  color: #374151;
 }
 
 .help {
