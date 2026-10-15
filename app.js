@@ -96,7 +96,7 @@ function bindEvents() {
   document.getElementById("saveLateBtn").addEventListener("click", saveLateModal);
   document.getElementById("pmLeaveBtn").addEventListener("click", registerPmLeave);
   document.getElementById("endBtn").addEventListener("click", registerEndTime);
-  document.getElementById("editTodayBtn").addEventListener("click", openEditModal);
+  document.getElementById("editTodayBtn").addEventListener("click", () => openEditModal());
   document.getElementById("settingsBtn").addEventListener("click", () => switchView("settingsView"));
   document.getElementById("copyBtn").addEventListener("click", copyAttendance);
   document.getElementById("saveSettingsBtn").addEventListener("click", saveSettingsFromForm);
@@ -238,7 +238,12 @@ function registerEndTime() {
 
 // 勤怠編集モーダルを開く
 // dateKeyを指定しなければ今日の勤怠を編集
-function openEditModal(dateKey = formatDateKey(new Date())) {
+function openEditModal(dateKey) {
+  // ボタンのクリックイベントなど、日付文字列以外が渡された場合は今日の日付を使用
+  if (typeof dateKey !== "string") {
+    dateKey = formatDateKey(new Date());
+  }
+
   // 現在編集中の日付を記憶
   editingDateKey = dateKey;
   document.getElementById("editModal").dataset.dateKey = dateKey;
