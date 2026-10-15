@@ -91,6 +91,9 @@ document.addEventListener("DOMContentLoaded", () => {
 // ============================================================
 function bindEvents() {
   document.getElementById("lateBtn").addEventListener("click", registerLate);
+  document.getElementById("cancelLateBtn").addEventListener("click", closeLateModal);
+  document.getElementById("cancelLateBtnAlt").addEventListener("click", closeLateModal);
+  document.getElementById("saveLateBtn").addEventListener("click", saveLateModal);
   document.getElementById("pmLeaveBtn").addEventListener("click", registerPmLeave);
   document.getElementById("endBtn").addEventListener("click", registerEndTime);
   document.getElementById("editTodayBtn").addEventListener("click", openEditModal);
@@ -158,39 +161,40 @@ function renderToday() {
     data?.endTime || "--:--";
 }
 
-// 「遅刻」ボタン：入力した開始時刻を遅刻として保存
+// 「遅刻」ボタン：アプリ内の入力モーダルを開く
+// ブラウザ標準promptを使わないため、サイト名の見出しは表示されない
 function registerLate() {
-  const dateKey = formatDateKey(new Date());
-  const existing = getAttendance(dateKey);
+  const input = document.getElementById("lateStartInput");
+  // 毎回、設定画面で指定した遅刻時の開始時刻を初期値にする
+  input.value = settings.lateStart;
+  document.getElementById("lateModal").classList.remove("hidden");
+  input.focus();
+}
 
-  // 既に登録されている開始時刻があれば初期値として表示
-  // なければ設定した遅刻開始時刻を表示
-  const startTime = prompt(
-    "出勤時刻を入力してください",
-    existing?.startTime || settings.lateStart
-  );
+function closeLateModal() {
+  document.getElementById("lateModal").classList.add("hidden");
+}
 
-  // キャンセルした場合は何もしない
-  if (startTime === null) return;
-
-  // HH:MM形式かチェック
+// 遅刻モーダルで入力した開始時刻を保存
+function saveLateModal() {
+  const startTime = document.getElementById("lateStartInput").value;
   if (!isValidTime(startTime)) {
-    showToast("時刻はHH:MM形式で入力してください");
+    showToast("出勤時刻を入力してください");
     return;
   }
 
-  // 入力した出勤時刻を保存
+  const dateKey = formatDateKey(new Date());
+  const existing = getAttendance(dateKey);
   saveAttendance({
     date: dateKey,
-    startTime: startTime,
+    startTime,
     endTime: existing?.endTime || null,
     status: "late",
     memo: existing?.memo || ""
   });
 
-  // 保存した内容を画面に反映
+  closeLateModal();
   renderAll();
-
   showToast(`遅刻（${startTime}）として登録しました`);
 }
 
@@ -237,6 +241,7 @@ function registerEndTime() {
 function openEditModal(dateKey = formatDateKey(new Date())) {
   // 現在編集中の日付を記憶
   editingDateKey = dateKey;
+  document.getElementById("editModal").dataset.dateKey = dateKey;
 
   // 指定日の勤怠データを取得
   const data = getAttendance(dateKey);
@@ -291,6 +296,9 @@ function handleEditStatusChange() {
 
 // 編集モーダルで変更した勤怠を保存
 function saveTodayEdit() {
+  const modal = document.getElementById("editModal");
+  // モーダルを開いた時点の日付を使用し、編集中の日付が不明になることを防ぐ
+  const targetDateKey = modal.dataset.dateKey || editingDateKey || formatDateKey(new Date());
   const startTime = document.getElementById("editStart").value;
   const endTime = document.getElementById("editEnd").value;
   const status = document.getElementById("editStatus").value;
@@ -325,7 +333,7 @@ function saveTodayEdit() {
 
   // 編集対象の日付に保存
   saveAttendance({
-    date: editingDateKey,
+    date: targetDateKey,
     startTime: finalStartTime || null,
     endTime: finalEndTime || null,
     status,
@@ -337,9 +345,17 @@ function saveTodayEdit() {
 
   // 編集対象の日付をリセット
   editingDateKey = null;
+  delete modal.dataset.dateKey;
 
-  // 画面を更新
-  renderAll();
+  // 保存したデータを読み直して、入力画面・履歴画面を明示的に更新
+  const savedRecord = getAttendance(targetDateKey);
+  if (!savedRecord) {
+    showToast("保存内容を確認できませんでした。もう一度お試しください");
+    return;
+  }
+  renderToday();
+  renderHistory();
+  renderSettings();
 
   showToast("勤怠を保存しました");
 }
