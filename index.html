@@ -114,7 +114,7 @@
           <h3>アプリ情報</h3>
         
           <p class="app-version">
-            バージョン：v1.2.2
+            バージョン：v1.2.4
           </p>
         
           <p class="app-update-description">
@@ -194,11 +194,26 @@
     </div>
   </div>
 
+  <!-- アプリ更新確認モーダル（ブラウザ標準confirmを使わず、ドメイン名を表示しない） -->
+  <div id="updateConfirmModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="updateConfirmTitle">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 id="updateConfirmTitle">最新版に更新</h2>
+        <button id="cancelUpdateBtn" class="icon-btn" type="button" aria-label="閉じる">×</button>
+      </div>
+      <p>アプリを最新版に更新しますか？</p>
+      <div class="modal-actions">
+        <button id="cancelUpdateBtnAlt" class="action secondary" type="button">キャンセル</button>
+        <button id="confirmUpdateBtn" class="action primary" type="button">更新する</button>
+      </div>
+    </div>
+  </div>
+
   <!-- 操作結果などを一時表示するトースト -->
   <div id="toast" class="toast"></div>
 
   <!-- アプリの動作を担当するJavaScript -->
-  <script src="app.js?v=1.2.2"></script>
+  <script src="app.js?v=1.2.4"></script>
 
   <!-- Service Workerを登録してPWAのキャッシュ機能を有効にする -->
   <script>
