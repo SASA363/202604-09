@@ -32,7 +32,8 @@ const HOLIDAYS = {
   "2026-07-20": "海の日",
   "2026-08-11": "山の日",
   "2026-09-21": "敬老の日",
-  "2026-09-22": "秋分の日",
+  "2026-09-22": "国民の休日",
+  "2026-09-23": "秋分の日",
   "2026-10-12": "スポーツの日",
   "2026-11-03": "文化の日",
   "2026-11-23": "勤労感謝の日",
@@ -51,6 +52,7 @@ const HOLIDAYS = {
   "2027-07-19": "海の日",
   "2027-08-11": "山の日",
   "2027-09-20": "敬老の日",
+  "2027-09-22": "国民の休日",
   "2027-09-23": "秋分の日",
   "2027-10-11": "スポーツの日",
   "2027-11-03": "文化の日",
@@ -67,11 +69,21 @@ const STATUS_LABELS = {
 
 // 起動時に保存済みの設定を読み込む
 let settings = loadSettings();
+let editingDateKey = null;
+let lastRenderedDateKey = formatDateKey(new Date());
 
 // HTMLの読み込みが完了したら、イベント設定と画面描画を開始
 document.addEventListener("DOMContentLoaded", () => {
   bindEvents();
   renderAll();
+
+  // アプリを開いたまま日付が変わった場合や、別画面から戻った場合に画面を更新
+  window.addEventListener("focus", refreshIfDateChanged);
+  document.addEventListener("visibilitychange", () => {
+    if (!document.hidden) refreshIfDateChanged();
+  });
+  // アプリを開いたまま深夜を迎えた場合にも日付変更を検知
+  window.setInterval(refreshIfDateChanged, 60 * 1000);
 });
 
 // ============================================================
@@ -89,6 +101,7 @@ function bindEvents() {
   document.getElementById("closeModalBtn").addEventListener("click", closeEditModal);
   document.getElementById("saveTodayBtn").addEventListener("click", saveTodayEdit);
   document.getElementById("deleteTodayBtn").addEventListener("click", deleteToday);
+  document.getElementById("editStatus").addEventListener("change", handleEditStatusChange);
 
   document.querySelectorAll(".nav-btn").forEach(btn => {
     btn.addEventListener("click", () => switchView(btn.dataset.view));
@@ -139,7 +152,7 @@ function renderToday() {
     data ? STATUS_LABELS[data.status] || "登録済み" : "未登録";
 
   document.getElementById("todayStart").textContent =
-    data?.startTime || "09:00";
+    data?.startTime || "--:--";
 
   document.getElementById("todayEnd").textContent =
     data?.endTime || "--:--";
@@ -234,10 +247,16 @@ function openEditModal(dateKey = formatDateKey(new Date())) {
     data?.status || "normal";
 
   document.getElementById("editStart").value =
-    data?.startTime || settings.startTime;
+    data?.startTime ?? (data?.status === "holiday" ? "" : settings.startTime);
 
   document.getElementById("editEnd").value =
-    data?.endTime || settings.endTime;
+    data?.endTime ?? (data?.status === "holiday" ? "" : settings.endTime);
+
+  // 既存データが休日の場合も、時刻欄は必ず空欄にする
+  if (data?.status === "holiday") {
+    document.getElementById("editStart").value = "";
+    document.getElementById("editEnd").value = "";
+  }
 
   document.getElementById("editMemo").value =
     data?.memo || "";
@@ -251,6 +270,25 @@ function closeEditModal() {
   document.getElementById("editModal").classList.add("hidden");
 }
 
+// 勤務状況の選択に応じて時刻欄を調整
+function handleEditStatusChange() {
+  const status = document.getElementById("editStatus").value;
+  const startInput = document.getElementById("editStart");
+  const endInput = document.getElementById("editEnd");
+
+  if (status === "normal") {
+    startInput.value = settings.startTime;
+    endInput.value = settings.endTime;
+  } else if (status === "pm_leave") {
+    if (!startInput.value) startInput.value = settings.startTime;
+    endInput.value = settings.pmLeaveEnd;
+  } else if (status === "holiday") {
+    startInput.value = "";
+    endInput.value = "";
+  }
+  // 遅刻は開始時刻を利用者が確認・入力できるよう、既存値を維持する
+}
+
 // 編集モーダルで変更した勤怠を保存
 function saveTodayEdit() {
   const startTime = document.getElementById("editStart").value;
@@ -258,14 +296,29 @@ function saveTodayEdit() {
   const status = document.getElementById("editStatus").value;
   const memo = document.getElementById("editMemo").value.trim();
 
+  // 休日は開始・終了時刻を空欄として保存
+  if (status === "holiday") {
+    document.getElementById("editStart").value = "";
+    document.getElementById("editEnd").value = "";
+  }
+
+  const finalStartTime = status === "holiday" ? "" : startTime;
+  const finalEndTime = status === "holiday" ? "" : endTime;
+
+  // 遅刻なのに通常勤務開始時刻のままの場合は保存前に警告
+  if (status === "late" && (!finalStartTime || finalStartTime === settings.startTime)) {
+    alert("遅刻の開始時刻が未入力、または通常勤務開始時刻のままです。開始時刻を確認してください。");
+    return;
+  }
+
   // 開始時刻の入力チェック
-  if (startTime && !isValidTime(startTime)) {
+  if (finalStartTime && !isValidTime(finalStartTime)) {
     showToast("開始時刻を確認してください");
     return;
   }
 
   // 終了時刻の入力チェック
-  if (endTime && !isValidTime(endTime)) {
+  if (finalEndTime && !isValidTime(finalEndTime)) {
     showToast("終了時刻を確認してください");
     return;
   }
@@ -273,8 +326,8 @@ function saveTodayEdit() {
   // 編集対象の日付に保存
   saveAttendance({
     date: editingDateKey,
-    startTime: startTime || null,
-    endTime: endTime || null,
+    startTime: finalStartTime || null,
+    endTime: finalEndTime || null,
     status,
     memo
   });
@@ -335,16 +388,17 @@ function renderHistory() {
     const row = document.createElement("div");
     row.className = "history-item";
 
-    if (item.isWeekend) row.classList.add("weekend");
-    if (item.holiday) row.classList.add("holiday");
-
     const data = item.attendance;
+    if (item.isWeekend || item.holiday || data?.status === "holiday") {
+      row.classList.add("holiday");
+    }
 
     row.innerHTML = `
       <div class="history-date">
         ${formatDateJP(item.date)}
-        <small>${item.day}${item.holiday ? " ・ " + item.holiday : ""}</small>
-        ${data ? `<small class="history-status">${STATUS_LABELS[data.status] || ""}</small>` : ""}
+        <small>${item.day}${item.holiday ? " ・ " + escapeHtml(item.holiday) : ""}</small>
+        ${data ? `<small class="history-status">${escapeHtml(STATUS_LABELS[data.status] || "")}</small>` : ""}
+        ${data?.memo ? `<small class="history-memo">${escapeHtml(data.memo)}</small>` : ""}
       </div>
       <div>${data?.startTime || ""}</div>
       <div>${data?.endTime || ""}</div>
@@ -367,12 +421,19 @@ function copyAttendance() {
   const period = getAttendancePeriod(now);
   const list = createAttendanceList(period.start, period.end);
 
+  // 行数を維持するため、未入力日・休日も空欄の行として出力する
   const text = list.map(item => {
     const data = item.attendance;
+
+    // 未入力日・休日・時刻が未入力の日は、3列とも空欄にする
+    if (!data || data.status === "holiday" || (!data.startTime && !data.endTime)) {
+      return "\t\t";
+    }
+
     return [
       settings.attendanceCategory,
-      data?.startTime || "",
-      data?.endTime || ""
+      data.startTime || "",
+      data.endTime || ""
     ].join("\t");
   }).join("\n");
 
@@ -472,6 +533,30 @@ function roundDownTo15Minutes(date) {
   result.setSeconds(0);
   result.setMilliseconds(0);
   return result;
+}
+
+// 日付が変わった場合に当日画面を更新し、前日の編集画面を閉じる
+function refreshIfDateChanged() {
+  const currentDateKey = formatDateKey(new Date());
+  if (currentDateKey === lastRenderedDateKey) return;
+
+  lastRenderedDateKey = currentDateKey;
+  if (editingDateKey && editingDateKey !== currentDateKey) {
+    closeEditModal();
+    editingDateKey = null;
+  }
+  renderAll();
+}
+
+// 履歴一覧にメモ等を安全に表示するためHTML特殊文字をエスケープ
+function escapeHtml(value) {
+  return String(value).replace(/[&<>"']/g, char => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#39;"
+  })[char]);
 }
 
 // 土曜日または日曜日かを判定
