@@ -7,7 +7,7 @@
 
 // キャッシュの名前
 // ファイルを更新時、「v1」→「v2」のように変更すると、古いキャッシュを新しいものへ切り替えが可能
-const CACHE_NAME = "attendance-app-v3";
+const CACHE_NAME = "attendance-app-v4";
 
 // アプリとして最低限必要なファイルをキャッシュ
 const FILES_TO_CACHE = [
