@@ -101,6 +101,9 @@ function bindEvents() {
   document.getElementById("copyBtn").addEventListener("click", copyAttendance);
   document.getElementById("saveSettingsBtn").addEventListener("click", saveSettingsFromForm);
   document.getElementById("updateAppBtn").addEventListener("click", updateApp);
+  document.getElementById("cancelUpdateBtn").addEventListener("click", closeUpdateModal);
+  document.getElementById("cancelUpdateBtnAlt").addEventListener("click", closeUpdateModal);
+  document.getElementById("confirmUpdateBtn").addEventListener("click", performAppUpdate);
   document.getElementById("closeModalBtn").addEventListener("click", closeEditModal);
   document.getElementById("saveTodayBtn").addEventListener("click", saveTodayEdit);
   document.getElementById("deleteTodayBtn").addEventListener("click", deleteToday);
@@ -684,10 +687,17 @@ function showToast(message) {
 // ============================================================
 
 // Service Workerとキャッシュを更新して、最新版のファイルを読み込む
-async function updateApp() {
-  if (!confirm("アプリを最新版に更新しますか？")) {
-    return;
-  }
+function updateApp() {
+  // ブラウザ標準confirmではなく、アプリ内の確認画面を表示
+  document.getElementById("updateConfirmModal").classList.remove("hidden");
+}
+
+function closeUpdateModal() {
+  document.getElementById("updateConfirmModal").classList.add("hidden");
+}
+
+async function performAppUpdate() {
+  closeUpdateModal();
 
   try {
     showToast("最新版を確認しています...");
