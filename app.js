@@ -107,6 +107,11 @@ function bindEvents() {
   document.getElementById("cancelUpdateBtn").addEventListener("click", closeUpdateModal);
   document.getElementById("cancelUpdateBtnAlt").addEventListener("click", closeUpdateModal);
   document.getElementById("confirmUpdateBtn").addEventListener("click", performAppUpdate);
+  document.getElementById("cancelDeleteBtn").addEventListener("click", closeDeleteConfirmModal);
+  document.getElementById("cancelDeleteBtnAlt").addEventListener("click", closeDeleteConfirmModal);
+  document.getElementById("confirmDeleteBtn").addEventListener("click", confirmDeleteToday);
+  document.getElementById("closeMessageBtn").addEventListener("click", closeMessageModal);
+  document.getElementById("closeMessageBtnAlt").addEventListener("click", closeMessageModal);
   document.getElementById("closeModalBtn").addEventListener("click", closeEditModal);
   document.getElementById("saveTodayBtn").addEventListener("click", saveTodayEdit);
   document.getElementById("deleteTodayBtn").addEventListener("click", deleteToday);
@@ -167,8 +172,8 @@ function renderToday() {
     data?.endTime || "--:--";
 }
 
-// 「遅刻」ボタン：lateStartまたは手動入力した時刻から勤務した扱いで保存
-// アプリ内の確認画面を表示
+// 「遅刻」ボタン：アプリ内の入力モーダルを開く
+// ブラウザ標準promptを使わないため、サイト名の見出しは表示されない
 function registerLate() {
   const input = document.getElementById("lateStartInput");
   // 毎回、設定画面で指定した遅刻時の開始時刻を初期値にする
@@ -204,8 +209,7 @@ function saveLateModal() {
   showToast(`遅刻（${startTime}）として登録しました`);
 }
 
-// 「PM休」ボタン：通常の開始時刻からpmLeaveEndまで勤務した扱いで保存
-// アプリ内の確認画面を表示
+// 「PM休」ボタン：ブラウザ標準confirmではなくアプリ内の確認画面を表示
 function openPmLeaveModal() {
   document.getElementById("pmLeaveConfirmModal").classList.remove("hidden");
 }
@@ -336,7 +340,7 @@ function saveTodayEdit() {
 
   // 遅刻なのに通常勤務開始時刻のままの場合は保存前に警告
   if (status === "late" && (!finalStartTime || finalStartTime === settings.startTime)) {
-    alert("遅刻の開始時刻が未入力、または通常勤務開始時刻のままです。開始時刻を確認してください。");
+    showMessageModal("開始時刻の確認", "遅刻の開始時刻が未入力、または通常勤務開始時刻のままです。開始時刻を確認してください。");
     return;
   }
 
@@ -383,8 +387,15 @@ function saveTodayEdit() {
 
 // 現在編集中の勤怠データを削除
 function deleteToday() {
-  if (!confirm("この日の勤怠データを削除しますか？")) return;
+  document.getElementById("deleteConfirmModal").classList.remove("hidden");
+}
 
+function closeDeleteConfirmModal() {
+  document.getElementById("deleteConfirmModal").classList.add("hidden");
+}
+
+function confirmDeleteToday() {
+  closeDeleteConfirmModal();
   const data = loadData();
 
   // 現在編集中の日付のデータを削除
@@ -392,7 +403,7 @@ function deleteToday() {
 
   saveData(data);
 
-  // モーダルを閉じる
+  // 編集モーダルを閉じる
   closeEditModal();
 
   // 編集対象の日付をリセット
