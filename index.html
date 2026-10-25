@@ -114,7 +114,7 @@
           <h3>アプリ情報</h3>
         
           <p class="app-version">
-            バージョン：v1.2.4
+            バージョン：v1.2.5
           </p>
         
           <p class="app-update-description">
@@ -150,6 +150,21 @@
       <div class="modal-actions">
         <button id="cancelLateBtnAlt" class="action secondary" type="button">キャンセル</button>
         <button id="saveLateBtn" class="action primary" type="button">登録</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- PM休の登録確認モーダル（ブラウザ標準confirmを使わない） -->
+  <div id="pmLeaveConfirmModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="pmLeaveConfirmTitle">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 id="pmLeaveConfirmTitle">PM休の登録</h2>
+        <button id="cancelPmLeaveBtn" class="icon-btn" type="button" aria-label="閉じる">×</button>
+      </div>
+      <p>本日をPM休として登録しますか？</p>
+      <div class="modal-actions">
+        <button id="cancelPmLeaveBtnAlt" class="action secondary" type="button">キャンセル</button>
+        <button id="confirmPmLeaveBtn" class="action primary" type="button">登録する</button>
       </div>
     </div>
   </div>
@@ -213,7 +228,7 @@
   <div id="toast" class="toast"></div>
 
   <!-- アプリの動作を担当するJavaScript -->
-  <script src="app.js?v=1.2.4"></script>
+  <script src="app.js?v=1.2.5"></script>
 
   <!-- Service Workerを登録してPWAのキャッシュ機能を有効にする -->
   <script>
