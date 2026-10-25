@@ -94,7 +94,10 @@ function bindEvents() {
   document.getElementById("cancelLateBtn").addEventListener("click", closeLateModal);
   document.getElementById("cancelLateBtnAlt").addEventListener("click", closeLateModal);
   document.getElementById("saveLateBtn").addEventListener("click", saveLateModal);
-  document.getElementById("pmLeaveBtn").addEventListener("click", registerPmLeave);
+  document.getElementById("pmLeaveBtn").addEventListener("click", openPmLeaveModal);
+  document.getElementById("cancelPmLeaveBtn").addEventListener("click", closePmLeaveModal);
+  document.getElementById("cancelPmLeaveBtnAlt").addEventListener("click", closePmLeaveModal);
+  document.getElementById("confirmPmLeaveBtn").addEventListener("click", registerPmLeave);
   document.getElementById("endBtn").addEventListener("click", registerEndTime);
   document.getElementById("editTodayBtn").addEventListener("click", () => openEditModal());
   document.getElementById("settingsBtn").addEventListener("click", () => switchView("settingsView"));
@@ -164,8 +167,8 @@ function renderToday() {
     data?.endTime || "--:--";
 }
 
-// 「遅刻」ボタン：アプリ内の入力モーダルを開く
-// ブラウザ標準promptを使わないため、サイト名の見出しは表示されない
+// 「遅刻」ボタン：lateStartまたは手動入力した時刻から勤務した扱いで保存
+// アプリ内の確認画面を表示
 function registerLate() {
   const input = document.getElementById("lateStartInput");
   // 毎回、設定画面で指定した遅刻時の開始時刻を初期値にする
@@ -201,11 +204,21 @@ function saveLateModal() {
   showToast(`遅刻（${startTime}）として登録しました`);
 }
 
-// 「PM休」ボタン：通常の開始時刻から13:00まで勤務した扱いで保存
+// 「PM休」ボタン：通常の開始時刻からpmLeaveEndまで勤務した扱いで保存
+// アプリ内の確認画面を表示
+function openPmLeaveModal() {
+  document.getElementById("pmLeaveConfirmModal").classList.remove("hidden");
+}
+
+function closePmLeaveModal() {
+  document.getElementById("pmLeaveConfirmModal").classList.add("hidden");
+}
+
+// PM休の登録を確定
 function registerPmLeave() {
   const existing = getAttendance(formatDateKey(new Date()));
 
-  if (!confirm("本日をPM休として登録しますか？")) return;
+  closePmLeaveModal();
 
   saveAttendance({
     date: formatDateKey(new Date()),
