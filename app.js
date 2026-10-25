@@ -385,8 +385,22 @@ function saveTodayEdit() {
   showToast("勤怠を保存しました");
 }
 
+// アプリ内メッセージモーダルを表示（ブラウザ標準alertを使わない）
+function showMessageModal(title, message) {
+  const modal = document.getElementById("messageModal");
+  document.getElementById("messageModalTitle").textContent = title;
+  document.getElementById("messageModalText").textContent = message;
+  modal.classList.remove("hidden");
+}
+
+// アプリ内メッセージモーダルを閉じる
+function closeMessageModal() {
+  document.getElementById("messageModal").classList.add("hidden");
+}
+
 // 現在編集中の勤怠データを削除
 function deleteToday() {
+
   document.getElementById("deleteConfirmModal").classList.remove("hidden");
 }
 
