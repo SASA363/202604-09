@@ -12,7 +12,7 @@
   <link rel="apple-touch-icon" href="icon-192.png">
   <title>勤怠入力簡略化システム</title>
   <!-- 画面の見た目を定義するCSSを読み込み -->
-  <link rel="stylesheet" href="style.css?v=1.2.2">
+  <link rel="stylesheet" href="style.css?v=1.2.6">
 </head>
 <body>
   <!-- アプリ全体を囲むコンテナ -->
@@ -114,7 +114,7 @@
           <h3>アプリ情報</h3>
         
           <p class="app-version">
-            バージョン：v1.2.5
+            バージョン：v1.2.6
           </p>
         
           <p class="app-update-description">
@@ -228,7 +228,36 @@
   <div id="toast" class="toast"></div>
 
   <!-- アプリの動作を担当するJavaScript -->
-  <script src="app.js?v=1.2.5"></script>
+  <!-- 勤怠削除の確認モーダル（ブラウザ標準confirmを使わない） -->
+  <div id="deleteConfirmModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="deleteConfirmTitle">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 id="deleteConfirmTitle">勤怠データの削除</h2>
+        <button id="cancelDeleteBtn" class="icon-btn" type="button" aria-label="閉じる">×</button>
+      </div>
+      <p>この日の勤怠データを削除しますか？</p>
+      <div class="modal-actions">
+        <button id="cancelDeleteBtnAlt" class="action secondary" type="button">キャンセル</button>
+        <button id="confirmDeleteBtn" class="action danger" type="button">削除する</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 入力内容の警告モーダル（ブラウザ標準alertを使わない） -->
+  <div id="messageModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="messageModalTitle">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 id="messageModalTitle">確認</h2>
+        <button id="closeMessageBtn" class="icon-btn" type="button" aria-label="閉じる">×</button>
+      </div>
+      <p id="messageModalText"></p>
+      <div class="modal-actions">
+        <button id="closeMessageBtnAlt" class="action primary" type="button">OK</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js?v=1.2.6"></script>
 
   <!-- Service Workerを登録してPWAのキャッシュ機能を有効にする -->
   <script>
